@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace AutoScalingClient
 {
@@ -8,10 +9,21 @@ namespace AutoScalingClient
     {
         private readonly AutoScalingClient _autoScalingClient = new AutoScalingClient();
         private readonly Logger _logger = new Logger();
-        private const int _minWait = 30_000; // 30 seconds
-        private const int _maxWait = 120_000; // 2 minutes
-        private const int _waitBetweenSends = 5_000; // 5 seconds;
-        private const int _maxTasks = 100_000;
+        private readonly int _minWait;
+        private readonly int _maxWait;
+        private readonly int _waitBetweenSends;
+        private readonly int _maxTasks;
+
+        public RandomRequestsSender()
+        {
+            var builder = new ConfigurationBuilder().AddJsonFile($"appsettings.json", true, true);
+            var config = builder.Build();
+
+            _minWait = int.Parse(config["MinWait"]);
+            _maxWait = int.Parse(config["MaxWait"]);
+            _waitBetweenSends = int.Parse(config["WaitBetweenSends"]);
+            _maxTasks = int.Parse(config["MaxTasks"]);
+        }
 
         public void SendRequestsBulk(int count)
         {
